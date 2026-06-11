@@ -28,6 +28,10 @@ jobs:
           pip install -r requirements.txt
           cd frontend && npm install
 
+      - name: Run spider
+        run: |
+          python spider/run_spider.py
+
       - name: Build frontend
         run: |
           cd frontend && npm run build
@@ -40,7 +44,8 @@ jobs:
         run: |
           git config --local user.email "github[bot]@users.noreply.github.com"
           git config --local user.name "GitHub Bot"
-          git add data/
+          git add frontend/public/data/
           git add frontend/public/sitemap.xml
+          git add frontend/dist/
           git diff --staged --quiet || git commit -m "Update data and sitemap $(date +'%Y-%m-%d %H:%M')"
           git push
