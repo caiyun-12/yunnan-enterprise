@@ -1,5 +1,7 @@
 import json
 import random
+from pathlib import Path
+from datetime import datetime
 
 # 基础数据
 job_titles = [
@@ -28,6 +30,8 @@ enterprise_names = [
     "中国电信云南分公司", "中国移动云南公司", "中国联通云南省分公司"
 ]
 
+enterprise_types = ["央企", "国企", "事业单位"]
+
 regions = [
     "昆明市", "曲靖市", "玉溪市", "保山市", "昭通市", "丽江市",
     "普洱市", "临沧市", "楚雄彝族自治州", "红河哈尼族彝族自治州",
@@ -35,15 +39,15 @@ regions = [
     "德宏傣族景颇族自治州", "怒江傈僳族自治州", "迪庆藏族自治州"
 ]
 
-job_types = ["全职", "兼职", "实习"]
-educations = ["不限", "大专", "本科", "硕士", "博士"]
-experiences = ["不限", "1年以下", "1-3年", "3-5年", "5-10年", "10年以上"]
-
 industries = [
     "电力", "烟草", "能源", "钢铁", "医药", "交通", "铁路",
     "金融", "建筑", "设计", "采矿", "水电", "旅游", "水利",
     "通信", "银行", "保险", "制造", "化工", "环保"
 ]
+
+job_types = ["全职", "兼职", "实习"]
+educations = ["不限", "大专", "本科", "硕士", "博士"]
+experiences = ["不限", "1年以下", "1-3年", "3-5年", "5-10年", "10年以上"]
 
 salary_ranges = [
     (3000, 5000), (5000, 8000), (8000, 12000), (12000, 18000),
@@ -56,42 +60,86 @@ sources = [
     "中国铁路昆明局官网", "云南省农信社官网", "云南建投官网", "云南省设计院官网"
 ]
 
-def generate_job(index):
-    ent_id = f"ent_{random.randint(1, 100):04d}"
+
+def generate_enterprise(index):
+    """生成企业数据"""
+    ent_id = f"ent_{index:04d}"
+    return {
+        "id": ent_id,
+        "name": enterprise_names[index - 1] if index <= len(enterprise_names) else f"云南XX企业{index}",
+        "type": random.choice(enterprise_types),
+        "industry": random.choice(industries),
+        "region": random.choice(regions),
+        "credit_code": f"91530000MB{random.randint(100000000, 999999999)}",
+        "status": "存续",
+        "source": random.choice(["国家企业信用信息公示系统", "巨潮资讯网", "天眼查"])
+    }
+
+
+def generate_job(index, enterprises):
+    """生成岗位数据"""
+    enterprise = random.choice(enterprises)
     salary_range = random.choice(salary_ranges)
     has_salary = random.random() > 0.1
 
     return {
         "id": f"job_{index:05d}",
-        "enterprise_id": ent_id,
-        "enterprise_name": random.choice(enterprise_names),
+        "enterprise_id": enterprise["id"],
+        "enterprise_name": enterprise["name"],
         "job_title": random.choice(job_titles),
         "job_type": random.choice(job_types),
-        "region": random.choice(regions),
+        "region": enterprise["region"],
         "salary_min": salary_range[0] if has_salary else None,
         "salary_max": salary_range[1] if has_salary else None,
         "salary_text": f"{salary_range[0]//1000}k-{salary_range[1]//1000}k" if has_salary else "面议",
         "education": random.choice(educations),
         "experience": random.choice(experiences),
         "recruit_number": random.choice([1, 2, 3, 5, 8, 10, 15, 20, 30, 50]),
-        "job_description": f"负责相关业务工作，要求具备良好的专业技能和沟通能力。",
-        "requirement": f"身体健康，品行端正，服从工作安排，具有相关工作经验优先。",
+        "job_description": "负责相关业务工作，要求具备良好的专业技能和沟通能力。",
+        "requirement": "身体健康，品行端正，服从工作安排，具有相关工作经验优先。",
         "contact": f"0871-{random.randint(60000000, 69999999)}",
         "publish_date": f"2026-{random.randint(1, 5):02d}-{random.randint(1, 28):02d}",
         "source": random.choice(sources),
         "source_url": "https://example.com"
     }
 
-# 生成2000条数据
-jobs = [generate_job(i) for i in range(1, 2001)]
 
-data = {
-    "update_time": "2026-05-29T00:00:00",
-    "count": len(jobs),
-    "data": jobs
-}
+def main():
+    # 使用相对路径，基于脚本所在位置
+    script_dir = Path(__file__).parent
+    data_dir = script_dir / "frontend" / "public" / "data"
+    data_dir.mkdir(parents=True, exist_ok=True)
 
-with open("J:/yunnan-enterprise/data/jobs.json", "w", encoding="utf-8") as f:
-    json.dump(data, f, ensure_ascii=False, indent=2)
+    # 生成企业数据（固定100家）
+    enterprise_count = 100
+    enterprises = [generate_enterprise(i) for i in range(1, enterprise_count + 1)]
 
-print(f"已生成 {len(jobs)} 条招聘数据")
+    # 生成2000条岗位数据
+    job_count = 2000
+    jobs = [generate_job(i, enterprises) for i in range(1, job_count + 1)]
+
+    # 保存企业数据
+    enterprise_data = {
+        "update_time": datetime.now().isoformat(),
+        "count": len(enterprises),
+        "data": enterprises
+    }
+    enterprise_path = data_dir / "enterprises.json"
+    with open(enterprise_path, "w", encoding="utf-8") as f:
+        json.dump(enterprise_data, f, ensure_ascii=False, indent=2)
+    print(f"已生成 {len(enterprises)} 条企业数据 -> {enterprise_path}")
+
+    # 保存岗位数据
+    job_data = {
+        "update_time": datetime.now().isoformat(),
+        "count": len(jobs),
+        "data": jobs
+    }
+    job_path = data_dir / "jobs.json"
+    with open(job_path, "w", encoding="utf-8") as f:
+        json.dump(job_data, f, ensure_ascii=False, indent=2)
+    print(f"已生成 {len(jobs)} 条招聘数据 -> {job_path}")
+
+
+if __name__ == "__main__":
+    main()
