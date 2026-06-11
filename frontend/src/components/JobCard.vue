@@ -1,6 +1,6 @@
 <script setup>
-import { computed } from 'vue'
 import { NTag, NButton } from 'naive-ui'
+import { formatSalary } from '../utils/format'
 
 const props = defineProps({
   job: {
@@ -10,25 +10,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['click'])
-
-const salaryDisplay = computed(() => {
-  if (!props.job.salary_min && !props.job.salary_max) {
-    return '薪资面议'
-  }
-  if (props.job.salary_text) {
-    return props.job.salary_text
-  }
-  return `${(props.job.salary_min || 0) / 1000}k-${(props.job.salary_max || 0) / 1000}k`
-})
-
-const typeColor = computed(() => {
-  const colors = {
-    '央企': 'error',
-    '国企': 'warning',
-    '事业单位': 'success'
-  }
-  return colors[props.job.type] || 'default'
-})
 </script>
 
 <template>
@@ -44,7 +25,7 @@ const typeColor = computed(() => {
         <p class="text-primary-600 mt-1">{{ job.enterprise_name }}</p>
       </div>
       <div class="text-right">
-        <span class="text-accent-500 font-semibold">{{ salaryDisplay }}</span>
+        <span class="text-accent-500 font-semibold">{{ formatSalary(job) }}</span>
       </div>
     </div>
 

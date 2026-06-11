@@ -2,22 +2,23 @@
 招聘信息爬虫
 """
 
-import requests
-from bs4 import BeautifulSoup
 import time
 import random
 from datetime import datetime, timedelta
-from config import SETTINGS, YUNNAN_REGIONS
+from config import SETTINGS, YUNNAN_REGIONS, create_session_with_retries, get_random_user_agent
+from logging_config import setup_logger
+
+logger = setup_logger("jobs_spider")
 
 
 class JobsSpider:
     """招聘信息爬虫"""
 
     def __init__(self):
-        self.session = requests.Session()
-        self.session.headers.update({
-            "User-Agent": SETTINGS["user_agent"]
-        })
+        self.session = create_session_with_retries(
+            max_retries=SETTINGS["max_retries"],
+            backoff_factor=SETTINGS["backoff_factor"]
+        )
 
     def crawl_gongpin(self, keyword=""):
         """爬取国聘网招聘信息"""
@@ -31,6 +32,11 @@ class JobsSpider:
                 "page": 1,
                 "pageSize": 20
             }
+
+            # TODO: 实际项目中需要实现真实API请求
+            # response = self.session.get(url, params=params, timeout=SETTINGS["timeout"])
+            # response.raise_for_status()
+            # data = response.json()
 
             # 演示数据
             job_titles = ["工程师", "技术员", "管理岗", "财务", "行政", "操作工", "设计师", "分析师"]
@@ -57,9 +63,10 @@ class JobsSpider:
                 }
                 jobs.append(job)
             time.sleep(SETTINGS["request_delay"])
+            logger.info(f"爬取国聘网完成，获取 {len(jobs)} 条数据")
 
         except Exception as e:
-            print(f"爬取国聘网出错: {e}")
+            logger.error(f"爬取国聘网出错: {e}")
 
         return jobs
 
@@ -74,6 +81,11 @@ class JobsSpider:
                 "region": "云南",
                 "page": 1
             }
+
+            # TODO: 实际项目中需要实现真实API请求
+            # response = self.session.get(url, params=params, timeout=SETTINGS["timeout"])
+            # response.raise_for_status()
+            # data = response.json()
 
             # 演示数据
             job_titles = ["技术员", "管理员", "办事员", "文员", "操作员", "检验员"]
@@ -100,9 +112,10 @@ class JobsSpider:
                 }
                 jobs.append(job)
             time.sleep(SETTINGS["request_delay"])
+            logger.info(f"爬取中国公共招聘网完成，获取 {len(jobs)} 条数据")
 
         except Exception as e:
-            print(f"爬取公共招聘网出错: {e}")
+            logger.error(f"爬取公共招聘网出错: {e}")
 
         return jobs
 
@@ -110,8 +123,12 @@ class JobsSpider:
         """爬取企业官网招聘页"""
         jobs = []
         try:
-            # 实际项目中需要根据每个企业的招聘页实现
-            # 这里返回演示数据
+            # TODO: 实际项目中需要根据每个企业的招聘页实现
+            # 使用 Playwright 处理 JavaScript 渲染页面
+            # response = self.session.get(career_url, timeout=SETTINGS["timeout"])
+            # response.raise_for_status()
+
+            # 演示数据
             job_titles = ["技术工程师", "项目经理", "职能专员", "运维工程师"]
             for i in range(1, 4):
                 job = {
@@ -135,9 +152,10 @@ class JobsSpider:
                     "source_url": career_url or "https://example.com"
                 }
                 jobs.append(job)
+            logger.info(f"爬取 {enterprise_name} 完成，获取 {len(jobs)} 条数据")
 
         except Exception as e:
-            print(f"爬取企业{enterprise_name}招聘页出错: {e}")
+            logger.error(f"爬取企业{enterprise_name}招聘页出错: {e}")
 
         return jobs
 
@@ -145,10 +163,10 @@ class JobsSpider:
         """运行爬虫"""
         all_jobs = []
 
-        print("正在爬取国聘网...")
+        logger.info("开始爬取国聘网...")
         all_jobs.extend(self.crawl_gongpin())
 
-        print("正在爬取中国公共招聘网...")
+        logger.info("开始爬取中国公共招聘网...")
         all_jobs.extend(self.crawl_mohrss())
 
         # 云南主要企业
@@ -161,8 +179,9 @@ class JobsSpider:
         ]
 
         for name, url in yunnan_enterprises:
-            print(f"正在爬取{name}...")
+            logger.info(f"开始爬取 {name}...")
             all_jobs.extend(self.crawl_enterprise_careers(name, url))
             time.sleep(random.uniform(2, 4))
 
+        logger.info(f"爬虫运行完成，共获取 {len(all_jobs)} 条招聘数据")
         return all_jobs

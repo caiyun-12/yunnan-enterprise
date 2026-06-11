@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { NModal, NCard, NTag, NButton, NDescriptions, NDescriptionsItem, NSpace } from 'naive-ui'
+import { formatSalary, getTypeColor } from '../utils/format'
 
 const props = defineProps({
   job: {
@@ -22,25 +23,6 @@ const emit = defineEmits(['close'])
 const enterprise = computed(() => {
   return props.enterprises.find(e => e.id === props.job.enterprise_id)
 })
-
-const salaryDisplay = computed(() => {
-  if (!props.job.salary_min && !props.job.salary_max) {
-    return '薪资面议'
-  }
-  if (props.job.salary_text) {
-    return props.job.salary_text
-  }
-  return `${(props.job.salary_min || 0) / 1000}k-${(props.job.salary_max || 0) / 1000}k`
-})
-
-const typeColor = computed(() => {
-  const colors = {
-    '央企': 'error',
-    '国企': 'warning',
-    '事业单位': 'success'
-  }
-  return colors[enterprise.value?.type] || 'default'
-})
 </script>
 
 <template>
@@ -56,13 +38,13 @@ const typeColor = computed(() => {
         <span class="text-lg font-semibold text-primary-600">
           {{ job.enterprise_name }}
         </span>
-        <n-tag v-if="enterprise" :type="typeColor">
+        <n-tag v-if="enterprise" :type="getTypeColor(enterprise.type)">
           {{ enterprise.type }}
         </n-tag>
       </div>
 
       <div class="text-2xl font-bold text-accent-500">
-        {{ salaryDisplay }}
+        {{ formatSalary(job) }}
       </div>
 
       <n-descriptions :column="2" bordered size="small">

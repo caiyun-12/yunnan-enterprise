@@ -2,13 +2,6 @@
 import { ref } from 'vue'
 import { NSelect, NInput, NButton, NSpace } from 'naive-ui'
 
-const props = defineProps({
-  enterprises: {
-    type: Array,
-    default: () => []
-  }
-})
-
 const emit = defineEmits(['search'])
 
 const keyword = ref('')

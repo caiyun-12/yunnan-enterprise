@@ -3,13 +3,37 @@ import { ref, computed, onMounted } from 'vue'
 import SearchBar from './components/SearchBar.vue'
 import JobList from './components/JobList.vue'
 import JobCard from './components/JobCard.vue'
-import EnterpriseCard from './components/EnterpriseCard.vue'
 import { NConfigProvider, NMessageProvider, NDialogProvider } from 'naive-ui'
 
 const allJobs = ref([])
 const enterprises = ref([])
 const loading = ref(false)
 const error = ref(null)
+
+// JSON-LD Structured Data for SEO
+const jsonLdSchema = computed(() => {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "云南央企国企招聘",
+    "description": "提供最新云南国企、央企、事业单位招聘信息查询服务",
+    "url": "https://yunnan-enterprise.vercel.app/",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "https://yunnan-enterprise.vercel.app/?search={search_term_string}"
+      },
+      "query-input": "required name=search_term_string"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "云南央企国企招聘",
+      "description": "云南省央企、国企、事业单位招聘信息查询系统"
+    }
+  }
+  return JSON.stringify(schema)
+})
 
 const filters = ref({
   keyword: '',
@@ -99,6 +123,9 @@ onMounted(() => {
   <n-config-provider>
     <n-message-provider>
       <n-dialog-provider>
+        <!-- JSON-LD Structured Data -->
+        <script type="application/ld+json" v-html="jsonLdSchema"></script>
+
         <div class="min-h-screen bg-gray-50">
           <header class="bg-white shadow-sm">
             <div class="max-w-7xl mx-auto px-4 py-4">
@@ -122,7 +149,6 @@ onMounted(() => {
 
             <template v-else>
               <search-bar
-                :enterprises="enterprises"
                 @search="updateFilters"
               />
 

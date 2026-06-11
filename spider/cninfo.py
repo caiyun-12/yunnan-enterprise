@@ -2,21 +2,22 @@
 巨潮资讯网爬虫 - 上市公司信息
 """
 
-import requests
-from bs4 import BeautifulSoup
 import time
 import random
-from config import SETTINGS, YUNNAN_REGIONS
+from config import SETTINGS, YUNNAN_REGIONS, create_session_with_retries
+from logging_config import setup_logger
+
+logger = setup_logger("cninfo_spider")
 
 
 class CninfoSpider:
     """巨潮资讯网爬虫"""
 
     def __init__(self):
-        self.session = requests.Session()
-        self.session.headers.update({
-            "User-Agent": SETTINGS["user_agent"]
-        })
+        self.session = create_session_with_retries(
+            max_retries=SETTINGS["max_retries"],
+            backoff_factor=SETTINGS["backoff_factor"]
+        )
 
     def search_listed_companies(self, keyword):
         """搜索上市公司"""
@@ -30,6 +31,11 @@ class CninfoSpider:
                 "page": 1,
                 "pageSize": 20
             }
+
+            # TODO: 实际项目中需要实现真实API调用
+            # response = self.session.get(url, params=params, timeout=SETTINGS["timeout"])
+            # response.raise_for_status()
+            # data = response.json()
 
             # 演示数据
             demo_companies = [
@@ -48,9 +54,10 @@ class CninfoSpider:
             ]
             companies.extend(demo_companies)
             time.sleep(SETTINGS["request_delay"])
+            logger.info(f"搜索上市公司 '{keyword}' 完成，获取 {len(demo_companies)} 条数据")
 
         except Exception as e:
-            print(f"搜索上市公司出错: {e}")
+            logger.error(f"搜索上市公司出错: {e}")
 
         return companies
 
@@ -61,9 +68,10 @@ class CninfoSpider:
 
         all_companies = []
         for keyword in keywords:
-            print(f"正在搜索上市公司: {keyword}")
+            logger.info(f"开始搜索上市公司: {keyword}")
             companies = self.search_listed_companies(keyword)
             all_companies.extend(companies)
             time.sleep(random.uniform(1, 3))
 
+        logger.info(f"上市公司搜索完成，共获取 {len(all_companies)} 条数据")
         return all_companies

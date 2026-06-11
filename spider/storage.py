@@ -6,12 +6,15 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
+from logging_config import setup_logger
+
+logger = setup_logger("storage")
 
 
 class DataStorage:
     """数据存储类"""
 
-    def __init__(self, data_dir="data"):
+    def __init__(self, data_dir="frontend/public/data"):
         self.data_dir = Path(data_dir)
         self.data_dir.mkdir(parents=True, exist_ok=True)
 
@@ -25,7 +28,7 @@ class DataStorage:
         }
         with open(file_path, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
-        print(f"企业数据已保存: {file_path}, 共{len(enterprises)}条")
+        logger.info(f"企业数据已保存: {file_path}, 共 {len(enterprises)} 条")
 
     def save_jobs(self, jobs):
         """保存招聘数据"""
@@ -37,7 +40,7 @@ class DataStorage:
         }
         with open(file_path, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
-        print(f"招聘信息已保存: {file_path}, 共{len(jobs)}条")
+        logger.info(f"招聘信息已保存: {file_path}, 共 {len(jobs)} 条")
 
     def load_enterprises(self):
         """加载企业数据"""

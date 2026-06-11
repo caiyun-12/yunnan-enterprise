@@ -10,8 +10,7 @@
   },
   "dependencies": {
     "vue": "^3.4.0",
-    "naive-ui": "^2.38.0",
-    "axios": "^1.6.0"
+    "naive-ui": "^2.38.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.0",

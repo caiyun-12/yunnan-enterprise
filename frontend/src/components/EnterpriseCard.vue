@@ -1,6 +1,6 @@
 <script setup>
-import { computed } from 'vue'
 import { NTag, NButton } from 'naive-ui'
+import { getTypeColor } from '../utils/format'
 
 const props = defineProps({
   enterprise: {
@@ -10,15 +10,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['click'])
-
-const typeColor = computed(() => {
-  const colors = {
-    '央企': 'error',
-    '国企': 'warning',
-    '事业单位': 'success'
-  }
-  return colors[props.enterprise.type] || 'default'
-})
 </script>
 
 <template>
@@ -31,7 +22,7 @@ const typeColor = computed(() => {
     </h3>
 
     <div class="mt-2 flex flex-wrap gap-2">
-      <n-tag size="small" :type="typeColor">
+      <n-tag size="small" :type="getTypeColor(enterprise.type)">
         {{ enterprise.type }}
       </n-tag>
       <n-tag size="small" type="info">

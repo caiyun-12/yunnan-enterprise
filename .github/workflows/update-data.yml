@@ -18,18 +18,29 @@ jobs:
         with:
           python-version: '3.10'
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
+          cd frontend && npm install
 
-      - name: Run spider
+      - name: Build frontend
         run: |
-          python spider/run_spider.py
+          cd frontend && npm run build
+
+      - name: Generate sitemap
+        run: |
+          node generate_sitemap.js
 
       - name: Commit changes
         run: |
           git config --local user.email "github[bot]@users.noreply.github.com"
           git config --local user.name "GitHub Bot"
           git add data/
-          git diff --staged --quiet || git commit -m "Update data $(date +'%Y-%m-%d %H:%M')"
+          git add frontend/public/sitemap.xml
+          git diff --staged --quiet || git commit -m "Update data and sitemap $(date +'%Y-%m-%d %H:%M')"
           git push
